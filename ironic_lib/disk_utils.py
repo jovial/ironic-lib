@@ -206,6 +206,12 @@ def is_nvme_device(dev):
     return "/dev/nvme" in dev
 
 
+def is_soft_raid_device(dev):
+    """check whether the device path belongs is configured is a multi
+    device. """
+    return "/dev/md" in dev
+
+
 def make_partitions(dev, root_mb, swap_mb, ephemeral_mb,
                     configdrive_mb, node_uuid, commit=True,
                     boot_option="netboot", boot_mode="bios",
@@ -251,7 +257,7 @@ def make_partitions(dev, root_mb, swap_mb, ephemeral_mb,
     # the device partitions as /dev/sda1 and not /dev/sda-part1.
     if is_iscsi_device(dev, node_uuid):
         part_template = dev + '-part%d'
-    elif is_nvme_device(dev):
+    elif is_nvme_device(dev) or is_soft_raid_device(dev):
         part_template = dev + 'p%d'
     else:
         part_template = dev + '%d'
@@ -941,7 +947,7 @@ def create_config_drive_partition(node_uuid, device, configdrive):
 
             if is_iscsi_device(device, node_uuid):
                 config_drive_part = '%s-part%s' % (device, new_part.pop())
-            elif is_nvme_device(device):
+            elif is_nvme_device(device) or is_soft_raid_device(device):
                 config_drive_part = '%sp%s' % (device, new_part.pop())
             else:
                 config_drive_part = '%s%s' % (device, new_part.pop())
